@@ -166,7 +166,7 @@ public final class GameListener implements Listener {
 			try {
 				cache.getCurrentGame().onPlayerCommand(cache, event);
 			} catch (EventHandledException ex) {
-				// let bukkit take care of the rest
+				event.setCancelled(ex.isCancelled());
 			}
 		}
 	}
