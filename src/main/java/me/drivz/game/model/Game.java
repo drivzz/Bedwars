@@ -792,6 +792,12 @@ public abstract class Game extends YamlConfig {
 		Player player = event.getPlayer();
 		Location respawnLocation = getRespawnLocation(player);
 
+		if (this.state == GameState.LOBBY) {
+			event.setRespawnLocation(this.getGameLobbyLocation());
+
+			return;
+		}
+		
 		if (respawnLocation != null)
 			event.setRespawnLocation(respawnLocation);
 	}
