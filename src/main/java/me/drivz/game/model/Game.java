@@ -798,8 +798,8 @@ public abstract class Game extends YamlConfig {
 			return;
 		}
 		
-		if (respawnLocation != null)
-			event.setRespawnLocation(respawnLocation);
+		Valid.checkNotNull(respawnLocation, "Unable to find respawn location for player " + player.getName());
+		event.setRespawnLocation(respawnLocation);
 	}
 
 	public void onPlayerCommand(PlayerCache cache, PlayerCommandPreprocessEvent event) {
