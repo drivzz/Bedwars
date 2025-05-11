@@ -797,7 +797,7 @@ public abstract class Game extends YamlConfig {
 
 			return;
 		}
-		
+
 		Valid.checkNotNull(respawnLocation, "Unable to find respawn location for player " + player.getName());
 		event.setRespawnLocation(respawnLocation);
 	}

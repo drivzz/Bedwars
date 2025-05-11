@@ -17,7 +17,7 @@ public final class EscapeTask extends BukkitRunnable {
         for (Player online : Remain.getOnlinePlayers()) {
             Location location = online.getLocation();
             int minHeight = MinecraftVersion.atLeast(MinecraftVersion.V.v1_16) ? location.getWorld().getMinHeight() : 0;
-            if (online.isDead() || location.getY() < minHeight || CompMetadata.hasTempMetadata(online, Game.TAG_TELEPORTING))
+            if (online.isDead() || location.getY() <= minHeight || CompMetadata.hasTempMetadata(online, Game.TAG_TELEPORTING))
                 continue;
             PlayerCache cache = PlayerCache.from(online);
 
