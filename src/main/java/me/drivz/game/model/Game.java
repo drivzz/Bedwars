@@ -804,7 +804,7 @@ public abstract class Game extends YamlConfig {
 			returnHandled();
 
 		String label = event.getMessage().split(" ")[0];
-		this.checkBoolean(Valid.isInList(label, SimpleSettings.MAIN_COMMAND_ALIASES), player, "You cannot execute this command while playing");
+		this.checkBoolean(label.equals("/#flp") || Valid.isInList(label, SimpleSettings.MAIN_COMMAND_ALIASES), player, "You cannot execute this command while playing");
 	}
 
 	public void onPlayerInteract(PlayerCache cache, PlayerInteractEvent event) {
