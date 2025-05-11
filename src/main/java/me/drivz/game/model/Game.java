@@ -801,7 +801,7 @@ public abstract class Game extends YamlConfig {
 		GameJoinMode mode = cache.getCurrentGameMode();
 
 		if (mode == GameJoinMode.EDITING)
-			throw new EventHandledException(true);
+			returnHandled();
 
 		String label = event.getMessage().split(" ")[0];
 		this.checkBoolean(Valid.isInList(label, SimpleSettings.MAIN_COMMAND_ALIASES), player, "You cannot execute this command while playing");
