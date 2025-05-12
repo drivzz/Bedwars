@@ -3,7 +3,7 @@ package me.drivz.game.tool;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import me.drivz.game.PlayerCache;
-import me.drivz.game.model.Game;
+import me.drivz.game.game.Game;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -46,16 +46,32 @@ public abstract class GameTool extends VisualTool {
 	protected void onSuccessfulClick(Player player, Game game, Block block) {
 	}
 
+	protected void onSuccessfulAirClick(Player player, Game game, ClickType clickType) {
+	}
+
+	@Override
+	protected void handleAirClick(Player player, ClickType click) {
+		Game game = this.getCurrentGame(player);
+
+		if (game != null && game.isEdited())
+			this.onSuccessfulAirClick(player, game, click);
+	}
+
 	@Override
 	protected List<Location> getVisualizedPoints(Player player) {
 		final List<Location> points = super.getVisualizedPoints(player);
-		final Game game = PlayerCache.from(player).getCurrentGame();
+		final Game game = this.getCurrentGame(player);
 
 		if (game != null) {
 			final Location point = this.getGamePoint(player, game);
 
 			if (point != null)
 				points.add(point);
+
+			final List<Location> additionalPoints = this.getGamePoints(player, game);
+
+			if (additionalPoints != null)
+				points.addAll(additionalPoints);
 		}
 
 		return points;
@@ -64,5 +80,14 @@ public abstract class GameTool extends VisualTool {
 	@Nullable
 	protected Location getGamePoint(Player player, Game game) {
 		return null;
+	}
+
+	@Nullable
+	protected List<Location> getGamePoints(Player player, Game game) {
+		return null;
+	}
+
+	protected final Game getCurrentGame(Player player) {
+		return PlayerCache.from(player).getCurrentGame();
 	}
 }

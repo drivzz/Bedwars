@@ -3,7 +3,7 @@ package me.drivz.game.tool;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.drivz.game.model.Game;
+import me.drivz.game.game.Game;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -20,8 +20,8 @@ public final class GameLobbyTool extends GameTool {
 
 	@Override
 	public ItemStack getItem() {
-		return ItemCreator.of(CompMaterial.IRON_AXE,
-				"&6Game Lobby Tool",
+		return ItemCreator.of(CompMaterial.IRON_SHOVEL,
+						"Game Lobby Tool",
 				"",
 				"&7Click to set game",
 				"&7lobby point.")
@@ -30,15 +30,15 @@ public final class GameLobbyTool extends GameTool {
 	}
 
 	@Override
+	protected CompMaterial getBlockMask(Block block, Player player) {
+		return CompMaterial.BLACK_STAINED_GLASS;
+	}
+
+	@Override
 	protected void onSuccessfulClick(Player player, Game game, Block block) {
 		game.setGameLobbyLocation(block.getLocation());
 
 		Messenger.success(player, "Game lobby point set.");
-	}
-
-	@Override
-	protected CompMaterial getBlockMask(Block block, Player player) {
-		return CompMaterial.IRON_BLOCK;
 	}
 
 	@Override

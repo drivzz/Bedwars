@@ -3,7 +3,7 @@ package me.drivz.game.tool;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.drivz.game.model.Game;
+import me.drivz.game.game.Game;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -20,8 +20,8 @@ public final class ReturnBackTool extends GameTool {
 
 	@Override
 	public ItemStack getItem() {
-		return ItemCreator.of(CompMaterial.LEAD,
-				"&6Return Back Location",
+		return ItemCreator.of(CompMaterial.IRON_HOE,
+						"Return Back Location",
 				"",
 				"Click to set location",
 				"to return back players",
@@ -32,15 +32,20 @@ public final class ReturnBackTool extends GameTool {
 	}
 
 	@Override
+	protected CompMaterial getBlockMask(Block block, Player player) {
+		return CompMaterial.RED_STAINED_GLASS;
+	}
+
+	@Override
+	protected String getBlockName(Block block, Player player) {
+		return "&8[&8Return Back&8]";
+	}
+
+	@Override
 	protected void onSuccessfulClick(Player player, Game game, Block block) {
 		game.setReturnBackLocation(block.getLocation());
 
 		Messenger.success(player, "Return back point set.");
-	}
-
-	@Override
-	protected CompMaterial getBlockMask(Block block, Player player) {
-		return CompMaterial.GLOWSTONE;
 	}
 
 	@Override

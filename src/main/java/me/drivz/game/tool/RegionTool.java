@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.drivz.game.PlayerCache;
-import me.drivz.game.model.Game;
+import me.drivz.game.game.Game;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -20,21 +20,16 @@ public final class RegionTool extends GameTool {
 
 	@Override
 	public ItemStack getItem() {
-		return ItemCreator.of(CompMaterial.WOODEN_AXE,
-				"&6Region Tool")
+		return ItemCreator.of(CompMaterial.IRON_AXE,
+						"Region Tool")
 				.lore(this.getItemLore())
 				.glow(true)
 				.make();
 	}
 
 	@Override
-	protected void onSuccessfulClick(Player player, Game game, Block block) {
-
-	}
-
-	@Override
 	protected CompMaterial getBlockMask(Block block, Player player) {
-		return CompMaterial.GOLD_BLOCK;
+		return CompMaterial.GREEN_STAINED_GLASS;
 	}
 
 	@Override
