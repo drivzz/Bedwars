@@ -1,7 +1,7 @@
 package me.drivz.game.command;
 
-import me.drivz.game.model.Game;
-import me.drivz.game.model.GameType;
+import me.drivz.game.game.Game;
+import me.drivz.game.game.GameType;
 
 import java.util.List;
 

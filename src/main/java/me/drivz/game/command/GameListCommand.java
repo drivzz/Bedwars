@@ -3,7 +3,7 @@ package me.drivz.game.command;
 import java.util.List;
 
 import org.mineacademy.fo.Common;
-import me.drivz.game.model.Game;
+import me.drivz.game.game.Game;
 
 final class GameListCommand extends GameSubCommand {
 

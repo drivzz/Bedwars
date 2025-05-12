@@ -1,7 +1,7 @@
 package me.drivz.game.command;
 
-import me.drivz.game.model.Game;
-import me.drivz.game.model.GameJoinMode;
+import me.drivz.game.game.Game;
+import me.drivz.game.game.GameJoinMode;
 
 import java.util.List;
 
@@ -11,18 +11,15 @@ final class GameJoinCommand extends GameSubCommand {
 		super("join/j");
 
 		this.setDescription("Joins a game.");
-		this.setUsage("<name>");
-		this.setMinArguments(1);
+		this.setUsage("[name]");
 	}
 
 	@Override
 	protected void onCommand() {
-		final String name = this.joinArgs(0);
-
 		this.checkConsole();
-		this.checkGameExists(name);
+		Game game = this.findGameFromLocationOrFirstArg();
 
-		Game.findByName(name).joinPlayer(this.getPlayer(), GameJoinMode.PLAYING);
+		game.joinPlayer(this.getPlayer(), GameJoinMode.PLAYING);
 	}
 
 	@Override

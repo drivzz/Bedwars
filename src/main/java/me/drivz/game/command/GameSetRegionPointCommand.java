@@ -1,7 +1,7 @@
 package me.drivz.game.command;
 
 import me.drivz.game.PlayerCache;
-import me.drivz.game.model.GameJoinMode;
+import me.drivz.game.game.GameJoinMode;
 import me.drivz.game.tool.RegionTool;
 import org.bukkit.event.inventory.ClickType;
 
