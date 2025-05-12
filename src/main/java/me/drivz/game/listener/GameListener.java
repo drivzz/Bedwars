@@ -1,8 +1,8 @@
 package me.drivz.game.listener;
 
 import me.drivz.game.PlayerCache;
-import me.drivz.game.model.Game;
-import me.drivz.game.model.GameJoinMode;
+import me.drivz.game.game.Game;
+import me.drivz.game.game.GameJoinMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -206,6 +206,9 @@ public final class GameListener implements Listener {
 			if (cache.getCurrentGameMode() == GameJoinMode.SPECTATING || cache.isJoining() || cache.isLeaving())
 				return;
 
+			if (player.isOp())
+				return;
+
 			player.setAllowFlight(false);
 			player.setFlying(false);
 
@@ -216,6 +219,13 @@ public final class GameListener implements Listener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		this.executeIfPlayingGame(event, ((player, cache) -> {
+			long now = System.currentTimeMillis();
+
+			if (((long) cache.getPlayerTag("JoinTime") - now) < 100) {
+				event.setCancelled(true);
+				return;
+			}
+
 			if (cache.isJoining() || cache.isLeaving())
 				return;
 
@@ -402,7 +412,7 @@ public final class GameListener implements Listener {
 		if (event.isCancelled())
 			return;
 
-		Entity entity = event.getEntity();
+		Item entity = event.getEntity();
 		Game game = Game.findByLocation(entity.getLocation());
 
 		if (game == null)
@@ -412,6 +422,14 @@ public final class GameListener implements Listener {
 				if (gameInNewLocation != null)
 					entity.remove();
 			});
+
+		else
+			try {
+				game.onItemSpawn(entity, event);
+			} catch (EventHandledException ex) {
+				event.setCancelled(ex.isCancelled());
+			}
+
 	}
 
 	@EventHandler

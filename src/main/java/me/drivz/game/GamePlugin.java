@@ -1,6 +1,6 @@
 package me.drivz.game;
 
-import me.drivz.game.model.Game;
+import me.drivz.game.game.Game;
 import me.drivz.game.task.EscapeTask;
 import org.mineacademy.fo.Common;
 import org.mineacademy.fo.plugin.SimplePlugin;
