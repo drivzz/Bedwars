@@ -1,8 +1,8 @@
 package me.drivz.game.task;
 
 import me.drivz.game.PlayerCache;
-import me.drivz.game.model.Game;
-import me.drivz.game.model.GameJoinMode;
+import me.drivz.game.game.Game;
+import me.drivz.game.game.GameJoinMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
