@@ -2,8 +2,8 @@ package me.drivz.game;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.drivz.game.model.Game;
-import me.drivz.game.model.GameJoinMode;
+import me.drivz.game.game.Game;
+import me.drivz.game.game.GameJoinMode;
 import org.bukkit.entity.Player;
 import org.mineacademy.fo.Valid;
 import org.mineacademy.fo.collection.StrictMap;
@@ -160,6 +160,10 @@ public final class PlayerCache extends YamlConfig {
 	 */
 	public void setPlayerTag(final String key, final Object value) {
 		this.tags.override(key, value);
+	}
+
+	public void removePlayerTag(final String key) {
+		this.tags.remove(key);
 	}
 
 	/**
