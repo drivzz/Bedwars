@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import me.drivz.game.PlayerCache;
 import me.drivz.game.game.Game;
+import me.drivz.game.game.impl.BedWarsTeams;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -89,5 +90,13 @@ public abstract class GameTool extends VisualTool {
 
 	protected final Game getCurrentGame(Player player) {
 		return PlayerCache.from(player).getCurrentGame();
+	}
+
+	protected final boolean hasTeams(Player player) {
+		return this.hasTeams(this.getCurrentGame(player));
+	}
+
+	protected final boolean hasTeams(Game game) {
+		return game instanceof BedWarsTeams;
 	}
 }

@@ -16,26 +16,46 @@ public class BedWarsScoreboard extends GameScoreboard {
     @Override
     protected String replaceVariables(final Player player, String message) {
 
-        final int playerSpawnpoints = this.getGame().getPlayerSpawnPoints().size();
-        final int maxPlayers = this.getGame().getMaxPlayers();
+        final int playerSpawnpoints = this.getGame().getPlayerSpawnpoints().size();
+        final int bedSpawnpoints = this.getGame().getBedSpawnpoints().size();
+        final boolean hasTeams = this.getGame() instanceof BedWarsTeams;
+        final int maxPlayers = hasTeams ? (((BedWarsTeams) this.getGame()).getTeamAmount()) : this.getGame().getMaxPlayers();
 
         message = Replacer.replaceArray(message,
                 "player_spawnpoints", (playerSpawnpoints >= maxPlayers ? "&a" : "") + playerSpawnpoints + "/" + maxPlayers,
+                "bed_spawnpoints", (bedSpawnpoints >= maxPlayers ? "&a" : "") + bedSpawnpoints + "/" + maxPlayers,
+                "bed_count", this.getGame().getRemainingBedCount(),
                 "generator_level", ((BedWarsHeartbeat) this.getGame().getHeartbeat()).getGeneratorsLevel());
+
+        if (hasTeams) {
+            BedWarsTeams teamGame = (BedWarsTeams) this.getGame();
+            if (teamGame.hasTeam(player)) {
+                Team team = teamGame.findTeam(player);
+                message = Replacer.replaceArray("team", team.getChatColor() + team.getName());
+            }
+        }
 
         return super.replaceVariables(player, message);
     }
 
     @Override
     protected List<Object> onEditLines() {
-        return Common.newList("Player spawnpoints: {player_spawnpoints}");
+        final boolean hasTeams = this.getGame() instanceof BedWarsTeams;
+        return Common.newList((hasTeams ? "Team" : "Player") + " spawnpoints: {player_spawnpoints}",
+                "Bed spawnpoints: {bed_spawnpoints}");
     }
 
     @Override
     public void onGameStart() {
         super.onGameStart();
 
-        this.addRows("Generators level: {generator_level}");
+        final boolean hasTeams = this.getGame() instanceof BedWarsTeams;
+
+        if (hasTeams)
+            this.addRows("Your team: {team}");
+
+        this.addRows("Generators level: {generator_level}",
+                "Remaining beds: {bed_count}");
     }
 
     @Override

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.drivz.game.game.Game;
 import me.drivz.game.game.impl.BedWars;
+import me.drivz.game.game.impl.BedWarsTeams;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -25,7 +26,7 @@ public final class PlayerSpawnPointTool extends GameTool {
     @Override
     public ItemStack getItem() {
         return ItemCreator.of(CompMaterial.IRON_SWORD,
-                        "Player Spawnpoint",
+                        "Player/Team Spawnpoint",
                         "",
                         "Click block to set",
                         "player spawnpoint")
@@ -53,21 +54,23 @@ public final class PlayerSpawnPointTool extends GameTool {
         }
 
         final BedWars bedWars = (BedWars) game;
-        final LocationList points = bedWars.getPlayerSpawnPoints();
+        final LocationList points = bedWars.getPlayerSpawnpoints();
+        final boolean hasTeams = this.hasTeams(game);
+        final int maxLimit = hasTeams ? ((BedWarsTeams) bedWars).getTeamAmount() : game.getMaxPlayers();
 
-        if (points.size() >= game.getMaxPlayers() && !points.hasLocation(block.getLocation())) {
-            Messenger.error(player, "Cannot place more points than game max players (" + game.getMaxPlayers() + ").");
+        if (points.size() >= maxLimit && !points.hasLocation(block.getLocation())) {
+            Messenger.error(player, "Cannot place more points than game max players (" + maxLimit + ").");
 
             return;
         }
 
         final boolean added = points.toggle(block.getLocation());
         Messenger.success(player, "Player spawnpoint was " + (added ? "added" : "removed") + " (" + points.size()
-                + "/" + game.getMaxPlayers() + ").");
+                + "/" + maxLimit + ").");
     }
 
     @Override
     protected List<Location> getGamePoints(Player player, Game game) {
-        return game instanceof BedWars ? ((BedWars) game).getPlayerSpawnPoints().getLocations() : null;
+        return game instanceof BedWars ? ((BedWars) game).getPlayerSpawnpoints().getLocations() : null;
     }
 }
