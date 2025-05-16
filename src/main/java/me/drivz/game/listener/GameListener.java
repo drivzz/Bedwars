@@ -16,6 +16,7 @@ import org.bukkit.event.entity.*;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.vehicle.VehicleCreateEvent;
 import org.jetbrains.annotations.Nullable;
@@ -162,6 +163,9 @@ public final class GameListener implements Listener {
 		Player player = event.getPlayer();
 		PlayerCache cache = PlayerCache.from(player);
 
+		if (player.isOp())
+			return;
+
 		if (cache.hasGame()) {
 			try {
 				cache.getCurrentGame().onPlayerCommand(cache, event);
@@ -219,6 +223,9 @@ public final class GameListener implements Listener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		this.executeIfPlayingGame(event, ((player, cache) -> {
+			if (player.isOp())
+				return;
+
 			long now = System.currentTimeMillis();
 
 			if (((long) cache.getPlayerTag("JoinTime") - now) < 100) {
@@ -240,9 +247,37 @@ public final class GameListener implements Listener {
 		PlayerCache cache = PlayerCache.from(player);
 		GameJoinMode mode = cache.getCurrentGameMode();
 
-		if (cache.hasGame() && mode != GameJoinMode.EDITING)
-			if (mode == GameJoinMode.SPECTATING && Menu.getMenu(player) == null)
+		if (cache.hasGame() && mode != GameJoinMode.EDITING) {
+
+			if (mode == GameJoinMode.SPECTATING && Menu.getMenu(player) == null) {
 				event.setCancelled(true);
+
+				return;
+			}
+
+			try {
+				cache.getCurrentGame().onPlayerInventoryClick(cache, event);
+
+			} catch (EventHandledException ex) {
+				event.setCancelled(ex.isCancelled());
+			}
+		}
+	}
+
+	@EventHandler
+	public void onInventoryDrag(InventoryDragEvent event) {
+		Player player = (Player) event.getWhoClicked();
+		PlayerCache cache = PlayerCache.from(player);
+		GameJoinMode mode = cache.getCurrentGameMode();
+
+		if (cache.hasGame() && mode != GameJoinMode.EDITING) {
+			try {
+				cache.getCurrentGame().onPlayerInventoryDrag(cache, event);
+
+			} catch (EventHandledException ex) {
+				event.setCancelled(ex.isCancelled());
+			}
+		}
 	}
 
 	@EventHandler
@@ -255,10 +290,18 @@ public final class GameListener implements Listener {
 		Game arena = Game.findByLocation(event.getBed().getLocation());
 
 		if (arena != null) {
-			PlayerCache cache = PlayerCache.from(event.getPlayer());
+			PlayerCache cache = arena.findPlayer(event.getPlayer());
 
 			if (cache.getCurrentGameMode() == GameJoinMode.EDITING)
 				event.setCancelled(true);
+			else if (cache.hasGame()) {
+				try {
+					cache.getCurrentGame().onBedEnter(cache, event);
+
+				} catch (EventHandledException ex) {
+					event.setCancelled(ex.isCancelled());
+				}
+			}
 		}
 	}
 
