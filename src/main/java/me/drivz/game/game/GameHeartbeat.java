@@ -60,7 +60,7 @@ public class GameHeartbeat extends Countdown {
 	 */
 	@Override
 	protected void onTickError(final Throwable t) {
-		this.game.stop();
+		this.game.stop(GameStopReason.ERROR);
 	}
 
 	/**
@@ -68,6 +68,6 @@ public class GameHeartbeat extends Countdown {
 	 */
 	@Override
 	protected void onEnd() {
-		this.game.stop();
+		this.game.stop(GameStopReason.TIMEOUT);
 	}
 }

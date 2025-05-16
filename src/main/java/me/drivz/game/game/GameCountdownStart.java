@@ -45,7 +45,7 @@ public class GameCountdownStart extends Countdown {
 	 */
 	@Override
 	protected void onTickError(final Throwable t) {
-		this.game.stop();
+		this.game.stop(GameStopReason.ERROR);
 	}
 
 	/**

@@ -1,6 +1,7 @@
 package me.drivz.game;
 
 import me.drivz.game.game.Game;
+import me.drivz.game.game.GameStopReason;
 import me.drivz.game.task.EscapeTask;
 import org.mineacademy.fo.Common;
 import org.mineacademy.fo.plugin.SimplePlugin;
@@ -17,7 +18,7 @@ public final class GamePlugin extends SimplePlugin {
 
 		for (Game game : Game.getGames())
 			if (!game.isStopped())
-				game.stop();
+				game.stop(GameStopReason.RELOAD);
 
 		Game.loadGames();
 	}

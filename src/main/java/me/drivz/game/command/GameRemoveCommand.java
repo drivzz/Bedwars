@@ -1,6 +1,7 @@
 package me.drivz.game.command;
 
 import me.drivz.game.game.Game;
+import me.drivz.game.game.GameStopReason;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ final class GameRemoveCommand extends GameSubCommand {
 		Game game = Game.findByName(name);
 
 		if (!game.isStopped())
-			game.stop();
+			game.stop(GameStopReason.COMMAND);
 
 		Game.removeGame(name);
 		tellSuccess("Removed game '" + name + "'!");

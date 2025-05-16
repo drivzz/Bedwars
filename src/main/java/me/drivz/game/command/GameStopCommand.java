@@ -1,6 +1,7 @@
 package me.drivz.game.command;
 
 import me.drivz.game.game.Game;
+import me.drivz.game.game.GameStopReason;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ final class GameStopCommand extends GameSubCommand {
 
         this.checkBoolean(!game.isStopped(), "Can only stop non-stopped games!");
 
-        game.stop();
+        game.stop(GameStopReason.COMMAND);
     }
 
     @Override
