@@ -3,6 +3,7 @@ package me.drivz.game.task;
 import me.drivz.game.PlayerCache;
 import me.drivz.game.game.Game;
 import me.drivz.game.game.GameJoinMode;
+import me.drivz.game.game.impl.BedWars;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -24,6 +25,9 @@ public final class EscapeTask extends BukkitRunnable {
             if (cache.hasGame() && !cache.isJoining() && !cache.isLeaving() && cache.getCurrentGameMode() != GameJoinMode.EDITING) {
                 Game game = cache.getCurrentGame();
                 if (!game.isStarting() && !game.isStopping() && !game.getRegion().isWithin(location)) {
+                    if (game instanceof BedWars && location.getY() <= 0)
+                        continue;
+
                     game.leavePlayer(online);
 
                     Messenger.warn(online, "You tried to escape so you were kicked from the game.");
