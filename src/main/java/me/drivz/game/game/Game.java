@@ -10,11 +10,15 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.*;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.*;
 import org.mineacademy.fo.*;
 import org.mineacademy.fo.collection.StrictList;
 import org.mineacademy.fo.exception.EventHandledException;
+import org.mineacademy.fo.model.BoxedMessage;
 import org.mineacademy.fo.model.Countdown;
+import org.mineacademy.fo.model.Replacer;
 import org.mineacademy.fo.model.SimpleTime;
 import org.mineacademy.fo.remain.CompMaterial;
 import org.mineacademy.fo.remain.CompMetadata;
@@ -25,7 +29,10 @@ import org.mineacademy.fo.settings.YamlConfig;
 import org.mineacademy.fo.visual.VisualizedRegion;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public abstract class Game extends YamlConfig {
@@ -123,9 +130,6 @@ public abstract class Game extends YamlConfig {
 			this.type = get("Type", GameType.class);
 	}
 
-	/**
-	 * @see org.mineacademy.fo.settings.YamlConfig#serialize()
-	 */
 	@Override
 	protected void onSave() {
 		this.set("Type", this.type);
@@ -160,6 +164,18 @@ public abstract class Game extends YamlConfig {
 
 	public final int getMinPlayers() {
 		return this.minPlayers;
+	}
+
+	public final void setMinPlayers(int minPlayers) {
+		this.minPlayers = minPlayers;
+
+		this.save();
+	}
+
+	public final void setMaxPlayers(int maxPlayers) {
+		this.maxPlayers = maxPlayers;
+
+		this.save();
 	}
 
 	public abstract Location getRespawnLocation(Player player);
@@ -411,7 +427,7 @@ public abstract class Game extends YamlConfig {
 		try {
 
 			if (this.players.size() < this.minPlayers) {
-				this.stop();
+				this.stop(GameStopReason.NOT_ENOUGH_PLAYERS);
 
 				return;
 			}
@@ -429,7 +445,7 @@ public abstract class Game extends YamlConfig {
 			} catch (final Throwable t) {
 				Common.error(t, "Failed to start game " + this.getName() + ", stopping for safety");
 
-				this.stop();
+				this.stop(GameStopReason.ERROR);
 			}
 
 			this.forEachInAllModes(cache -> {
@@ -446,7 +462,7 @@ public abstract class Game extends YamlConfig {
 			} catch (final Throwable t) {
 				Common.error(t, "Failed to start game " + this.getName() + ", stopping for safety");
 
-				this.stop();
+				this.stop(GameStopReason.ERROR);
 			}
 
 			// Close all players inventories
@@ -459,22 +475,34 @@ public abstract class Game extends YamlConfig {
 		}
 	}
 
-	public final void stop() {
+	public final void stop(GameStopReason stopReason) {
 		Valid.checkBoolean(this.state != GameState.STOPPED, "Cannot stop stopped game " + this.getName());
 
 		this.stopping = true;
 
 		try {
+			if (this.startCountdown.isRunning())
+				this.startCountdown.cancel();
 
-			if (this.state != GameState.EDITED) {
-				if (this.startCountdown.isRunning())
-					this.startCountdown.cancel();
+			if (this.heartbeat.isRunning())
+				this.heartbeat.cancel();
 
-				if (this.heartbeat.isRunning())
-					this.heartbeat.cancel();
+			final int playingPlayersCount = this.getPlayers(GameJoinMode.PLAYING).size();
 
-				this.forEachPlayerInAllModes(player -> this.leavePlayer(player, false));
-			}
+			this.forEachPlayerInAllModes(player -> {
+				this.leavePlayer(player, false);
+
+				String stopMessage = stopReason.getMessage();
+
+				if (stopMessage != null) {
+					BoxedMessage.tell(player, "<center>&c&lGAME OVER\n\n<center>"
+							+ Replacer.replaceArray(stopMessage,
+							"game", this.getName(),
+							"players", playingPlayersCount,
+							"min_players", this.getMinPlayers()).replace("\n", "\n<center>"));
+				}
+			});
+
 
 			this.scoreboard.onGameStop();
 			this.cleanEntities();
@@ -530,13 +558,19 @@ public abstract class Game extends YamlConfig {
 		cache.setJoining(true);
 
 		try {
+
 			cache.clearTags();
 
 			cache.setPlayerTag("JoinTime", System.currentTimeMillis());
 
 			if (mode != GameJoinMode.EDITING) {
-				PlayerUtil.storeState(player);
+
 				cache.setPlayerTag("PreviousLocation", player.getLocation());
+
+				PlayerUtil.storeState(player);
+
+				this.teleport(player, this.gameLobbyLocation);
+
 				PlayerUtil.normalize(player, true);
 			}
 
@@ -581,13 +615,15 @@ public abstract class Game extends YamlConfig {
 			Messenger.success(player, "You are now " + mode.toString().toLowerCase() + " game '" + this.getName() + "'!");
 
 			if (this.isLobby())
-				this.broadcast("&6" + player.getName() + "&7has joined the game! (" + this.players.size() + "/" + this.maxPlayers + ")");
+				this.broadcast("&6" + player.getName() + " &7has joined the game! (" + this.players.size() + "/" + this.maxPlayers + ")");
 
 			this.scoreboard.onPlayerJoin(player);
 			this.checkIntegrity();
+
 		} finally {
 			cache.setJoining(false);
 		}
+
 		return true;
 	}
 
@@ -684,7 +720,7 @@ public abstract class Game extends YamlConfig {
 				Common.error(t, "Failed to properly handle " + player.getName() + " leaving game " + this.getName() + ", stopping for safety");
 
 				if (!this.isStopped()) {
-					stop();
+					stop(GameStopReason.ERROR);
 
 					return;
 				}
@@ -695,15 +731,21 @@ public abstract class Game extends YamlConfig {
 				Valid.checkNotNull(previousLocation, "Unable to locate previous location for player " + player.getName());
 
 				PlayerUtil.normalize(player, true);
-				this.teleport(player, previousLocation);
+
+				if (findByLocation(previousLocation) != null && this.returnBackLocation != null)
+					this.teleport(player, returnBackLocation);
+				else
+					this.teleport(player, previousLocation);
+
 				Common.runLater(2, () -> PlayerUtil.restoreState(player));
 			}
 
 			// If we are not stopping, remove from the map automatically
 			if (this.getPlayers(GameJoinMode.PLAYING).isEmpty() && stopIfLast)
-				this.stop();
+				this.stop(GameStopReason.LAST_PLAYER_LEFT);
 
-			Messenger.success(player, "You've left " + cache.getCurrentGameMode().toString().toLowerCase() + " the game '" + this.getName() + "'!");
+			if (!this.isStopping())
+				Messenger.success(player, "You've left " + cache.getCurrentGameMode().toString().toLowerCase() + " the game '" + this.getName() + "'!");
 
 			this.broadcast("&6" + player.getName() + "&7has left the game! (" + this.getPlayers(GameJoinMode.PLAYING).size() + "/" + this.maxPlayers + ")");
 		} finally {
@@ -925,6 +967,22 @@ public abstract class Game extends YamlConfig {
 		}
 	}
 
+	public void onPlayerInventoryDrag(PlayerCache cache, InventoryDragEvent event) {
+		// TODO add exception for clicking ur own custom items
+		if (this.isPlayed())
+			this.cancelEvent();
+	}
+
+	public void onPlayerInventoryClick(PlayerCache cache, InventoryClickEvent event) {
+		// TODO add exception for clicking ur own custom items
+		if (this.isPlayed())
+			this.cancelEvent();
+	}
+
+	public void onBedEnter(PlayerCache cache, PlayerBedEnterEvent event) {
+		this.cancelEvent();
+	}
+
 	/* ------------------------------------------------------------------------------- */
 	/* Static */
 	/* ------------------------------------------------------------------------------- */
@@ -992,7 +1050,11 @@ public abstract class Game extends YamlConfig {
 		return null;
 	}
 
-	public static Collection<? extends Game> getGames() {
+	public static Game findByPlayer(Player player) {
+		return PlayerCache.from(player).getCurrentGame();
+	}
+
+	public static List<? extends Game> getGames() {
 		return loadedFiles.getItems();
 	}
 
